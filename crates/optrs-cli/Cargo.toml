@@ -1,0 +1,16 @@
+# optrs/crates/optrs-cli/Cargo.toml
+[package]
+name = "optrs-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "optrs"
+path = "src/main.rs"
+
+[dependencies]
+optrs-core.workspace = true
+optrs-engine.workspace = true
+clap = { version = "4", features = ["derive"] }

@@ -1,0 +1,18 @@
+# optrs/crates/optrs-cabi/Cargo.toml
+[package]
+name = "optrs-cabi"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lib]
+name = "optrs"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+optrs-core.workspace = true
+optrs-engine.workspace = true
+
+[build-dependencies]
+cbindgen = "0.27"
