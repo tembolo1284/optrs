@@ -1,0 +1,11 @@
+# crates/optrs-cos/Cargo.toml
+[package]
+name = "optrs-cos"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+optrs-core.workspace = true
+num-complex.workspace = true

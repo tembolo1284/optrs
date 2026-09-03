@@ -1,0 +1,10 @@
+# crates/optrs-fd/Cargo.toml
+[package]
+name = "optrs-fd"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+optrs-core.workspace = true

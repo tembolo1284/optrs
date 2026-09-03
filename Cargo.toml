@@ -1,4 +1,4 @@
-# optrs/Cargo.toml
+# Cargo.toml
 [workspace]
 resolver = "2"
 members = [
@@ -8,6 +8,7 @@ members = [
     "crates/optrs-fd",
     "crates/optrs-mc",
     "crates/optrs-engine",
+    "crates/optrs-cabi",
     "crates/optrs-cli",
 ]
 
@@ -24,18 +25,13 @@ optrs-tree = { path = "crates/optrs-tree" }
 optrs-fd = { path = "crates/optrs-fd" }
 optrs-mc = { path = "crates/optrs-mc" }
 optrs-engine = { path = "crates/optrs-engine" }
+optrs-cabi = { path = "crates/optrs-cabi" }
 num-complex = "0.4"
-
-[profile.bench]
-inherits = "release"
-debug = true
-
-# optrs/Cargo.toml  (replace the [profile.release] block)
 
 [profile.release]
 lto = "thin"
 codegen-units = 1
-# NOTE: deliberately NOT panic = "abort". The cdylib catches unwinds at the FFI
-# boundary and converts them to error codes. With abort, a panic in the pricer
-# would kill the host process — which for the Python binding means killing the
-# interpreter, and for Excel means killing Excel.
+
+[profile.bench]
+inherits = "release"
+debug = true
