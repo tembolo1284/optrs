@@ -6,7 +6,7 @@ pub mod lsmc;
 pub mod rng;
 
 use lsmc::{cholesky_solve, laguerre_basis};
-use optrs_core::analytic::{self, BsmInputs, OptionType};
+use optrs_core::analytic::{BsmInputs, OptionType};
 use optrs_core::error::{Error, Result};
 use optrs_core::exercise::Exercise;
 use rng::{inverse_normal, Pcg64, UniformStream};

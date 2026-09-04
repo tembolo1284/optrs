@@ -2,7 +2,7 @@
 //! Parameterisation and backward induction are separated: CRR and Leisen-Reimer
 //! differ only in how they produce `TreeParams`.
 
-use optrs_core::analytic::{BsmInputs, OptionType};
+use optrs_core::analytic::BsmInputs;
 
 #[derive(Clone, Copy, Debug)]
 pub struct TreeParams {
