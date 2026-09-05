@@ -1,0 +1,21 @@
+# bindings/python/pyproject.toml
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "optrs"
+version = "0.1.0"
+description = "Option pricing and risk across four numerical methods"
+requires-python = ">=3.10"
+dependencies = ["cffi>=1.16"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["optrs*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
