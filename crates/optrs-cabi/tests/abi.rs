@@ -2,8 +2,8 @@
 //! Exercises the exported functions from Rust so `cargo test` covers the ABI
 //! without needing a C compiler in CI.
 
-use optrs_cabi::types::{OptKind, OptOption, OptResult, OptStatus, OptStyle};
-use optrs_cabi::*;
+use optrs::types::{OptKind, OptOption, OptResult, OptStatus, OptStyle};
+use optrs::*;
 
 fn european_call() -> OptOption {
     let mut o = OptOption {
