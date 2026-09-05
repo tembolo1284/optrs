@@ -1,0 +1,81 @@
+# .github/workflows/ci.yml
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace
+
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.75.0
+      - uses: Swatinem/rust-cache@v2
+      # Build only: older toolchains often can't compile dev-dependencies.
+      - run: cargo build --workspace
+
+  cabi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build -p optrs-cabi --release
+      - name: header is up to date
+        run: |
+          test -f include/optrs.h
+          git diff --exit-code -- include/optrs.h
+      - name: C smoke test
+        run: |
+          cc -O2 -Wall -Wextra -Iinclude \
+             crates/optrs-cabi/tests/smoke.c \
+             -Ltarget/release -loptrs -lm \
+             -Wl,-rpath,"$PWD/target/release" \
+             -o smoke
+          ./smoke
+
+  python:
+    needs: cabi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build -p optrs-cabi --release
+      - run: pip install pytest cffi
+      - run: pytest bindings/python/tests -v
+        env:
+          OPTRS_LIB_DIR: ${{ github.workspace }}/target/release
