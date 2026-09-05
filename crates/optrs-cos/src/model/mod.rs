@@ -12,4 +12,8 @@ pub trait CharFn {
 
     /// (c1, c2, c4) of the log-return — drives COS truncation width.
     fn cumulants(&self, t: f64) -> (f64, f64, f64);
+
+    /// E[S_T]/S_0. Under any risk-neutral model this is exp((r - q)·T).
+    /// Needed for put-call parity without assuming a specific model.
+    fn expected_growth(&self, t: f64) -> f64;
 }
