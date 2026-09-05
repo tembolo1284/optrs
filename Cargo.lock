@@ -472,7 +472,6 @@ name = "optrs-cabi"
 version = "0.1.0"
 dependencies = [
  "cbindgen",
- "optrs-cabi",
  "optrs-core",
  "optrs-engine",
 ]

@@ -53,6 +53,15 @@ fn convergence_beats_a_single_coarse_run() {
     assert!((report.result.price - truth).abs() < 1e-5);
 }
 
+/// Run with `--nocapture` to see the full diagnostic table.
+///
+/// Interpretation guide when this fails:
+///   - grid lines identical across the rate bump  -> mesh is stable, so a rho
+///     error is a real discretisation error, not relocation
+///   - grid lines differ                          -> the mesh moved; the bump
+///     is measuring relocation, not sensitivity
+///   - all greeks off by a similar relative amount -> the base price is wrong,
+///     not the bumping
 #[test]
 fn bumped_greeks_match_analytic() {
     let req = PriceRequest::european(inputs(), OptionType::Call);
@@ -61,11 +70,42 @@ fn bumped_greeks_match_analytic() {
 
     // FD has no native greeks, so this exercises the full bump path.
     let bumped = greeks(Engine::FiniteDifference, &req, &cfg).unwrap();
-    assert!((bumped.delta - exact.delta).abs() < 1e-3, "delta");
-    assert!((bumped.gamma - exact.gamma).abs() < 1e-3, "gamma");
-    assert!((bumped.vega - exact.vega).abs() < 1e-2, "vega");
-    assert!((bumped.rho - exact.rho).abs() < 1e-2, "rho");
-    assert!((bumped.theta - exact.theta).abs() < 5e-2, "theta");
+
+    // Confirm the mesh does not move when `rate` is bumped, which was the
+    // original cause of a ~1e-2 rho error.
+    let bump = cfg.greeks.rate_abs;
+    let mut up = req.inputs;
+    up.rate += bump;
+    let mut dn = req.inputs;
+    dn.rate -= bump;
+    let g0 = optrs_fd::grid_report(&req.inputs, &cfg.fd);
+    let gu = optrs_fd::grid_report(&up, &cfg.fd);
+    let gd = optrs_fd::grid_report(&dn, &cfg.fd);
+
+    println!("\ngrid under rate bump (lo, hi, dx, spot offset within cell)");
+    println!("  base {:?}", g0);
+    println!("  r+   {:?}", gu);
+    println!("  r-   {:?}", gd);
+    println!("  mesh stable: {}", g0.0 == gu.0 && g0.0 == gd.0 && g0.2 == gu.2);
+
+    let rows = [
+        ("price", bumped.price, exact.price, 1e-3),
+        ("delta", bumped.delta, exact.delta, 1e-3),
+        ("gamma", bumped.gamma, exact.gamma, 1e-3),
+        ("vega", bumped.vega, exact.vega, 1e-2),
+        ("theta", bumped.theta, exact.theta, 5e-2),
+        ("rho", bumped.rho, exact.rho, 1e-2),
+    ];
+
+    println!("\n{:<6} {:>14} {:>14} {:>12} {:>12}", "greek", "bumped", "exact", "abs diff", "tol");
+    for (name, got, want, tol) in rows {
+        println!("{name:<6} {got:>14.8} {want:>14.8} {:>12.2e} {tol:>12.0e}", (got - want).abs());
+    }
+    println!();
+
+    for (name, got, want, tol) in rows {
+        assert!((got - want).abs() < tol, "{name}: {got} vs {want}");
+    }
 }
 
 #[test]
