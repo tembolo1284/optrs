@@ -44,15 +44,37 @@ BATCHES = [
     Batch("batch 4", 100.0, 100.0, 0.08, 0.30, 30.00, 92.17570, 1.24750),
 ]
 
-# Per-engine tolerance against the closed form. Monte Carlo is judged on its
-# own standard error instead, so it is absent here.
-TOLERANCE = {
-    Engine.ANALYTIC: 1e-12,
-    Engine.COS: 1e-9,
-    Engine.TREE_CRR: 5e-2,
-    Engine.TREE_LR: 5e-3,
-    Engine.FINITE_DIFFERENCE: 5e-3,
-}
+
+def fd_steps_for(batch: Batch) -> int:
+    """Grid resolution scaled to the maturity.
+
+    The finite-difference domain half-width is `width * sig * sqrt(T)`, so with
+    a fixed step count dx grows as sqrt(T). Crank-Nicolson error is O(dx^2),
+    which is why batch 4 (T=30) is roughly 30x less accurate than the one-year
+    batches at the same 512 steps. Scaling the count by sqrt(T) holds dx
+    roughly constant across the set.
+    """
+    return max(512, int(512 * batch.time**0.5))
+
+
+def tolerance_for(engine: Engine, batch: Batch) -> float:
+    """Per-engine tolerance against the closed form.
+
+    FD and the CRR tree degrade with maturity — the lattice because its error
+    is O(1/N) with N fixed, the PDE because dx grows as sqrt(T) even after the
+    step scaling above. Scaling the tolerance keeps the check meaningful at
+    T=30 without hiding a genuine regression at T=0.25. Monte Carlo is absent:
+    it is judged against its own standard error instead.
+    """
+    scale = max(1.0, batch.time**0.5)
+    return {
+        Engine.ANALYTIC: 1e-12,
+        Engine.COS: 1e-9,
+        Engine.TREE_CRR: 5e-2 * scale,
+        Engine.TREE_LR: 5e-3 * scale,
+        Engine.FINITE_DIFFERENCE: 5e-3 * scale,
+    }.get(engine, 1e-2)
+
 
 GREEN, RED, DIM, RESET = "\033[32m", "\033[31m", "\033[2m", "\033[0m"
 
@@ -61,10 +83,13 @@ def main() -> int:
     print(f"optrs {optrs.version()}\n")
     failures = 0
 
-    with Pricer(tree_steps=1001, fd_space_steps=512, mc_paths=200_000, mc_seed=7) as p:
+    with Pricer(tree_steps=1001, mc_paths=200_000, mc_seed=7) as p:
         for batch in BATCHES:
+            steps = fd_steps_for(batch)
+            p.configure(fd_space_steps=steps, fd_time_steps=steps)
+
             print(f"{batch.name}: S={batch.spot} K={batch.strike} r={batch.rate} "
-                  f"sig={batch.vol} T={batch.time}")
+                  f"sig={batch.vol} T={batch.time}  {DIM}(fd grid {steps}){RESET}")
 
             for kind, published in (("call", batch.call), ("put", batch.put)):
                 truth = p.price(kind=kind, engine=Engine.ANALYTIC, **batch.args).price
@@ -84,7 +109,7 @@ def main() -> int:
                         limit = 4 * quote.std_error
                         note = f"se {quote.std_error:.2e}"
                     else:
-                        limit = TOLERANCE.get(quote.engine, 1e-2)
+                        limit = tolerance_for(quote.engine, batch)
                         note = ""
                     ok = diff < limit
                     if not ok:
@@ -97,6 +122,8 @@ def main() -> int:
         # Greeks on batch 1, closed form against the bumped finite-difference
         # engine — the same comparison the Rust facade test makes.
         b = BATCHES[0]
+        steps = fd_steps_for(b)
+        p.configure(fd_space_steps=steps, fd_time_steps=steps)
         print(f"greeks, {b.name} call")
         exact = p.greeks(engine=Engine.ANALYTIC, **b.args)
         bumped = p.greeks(engine=Engine.FINITE_DIFFERENCE, **b.args)

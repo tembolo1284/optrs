@@ -1,0 +1,9 @@
+pyproject.toml
+optrs/__init__.py
+optrs/_ffi.py
+optrs.egg-info/PKG-INFO
+optrs.egg-info/SOURCES.txt
+optrs.egg-info/dependency_links.txt
+optrs.egg-info/requires.txt
+optrs.egg-info/top_level.txt
+tests/test_pricing.py
