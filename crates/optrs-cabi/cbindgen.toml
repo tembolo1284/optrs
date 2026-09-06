@@ -23,7 +23,8 @@ include = ["OptStatus", "OptKind", "OptStyle", "OptOption", "OptResult"]
 "Pricer" = "opt_pricer_t"
 
 [enum]
-prefix_with_name = true
+# Deliberately NOT prefix_with_name: that derives the prefix from the renamed
+# type, giving OPT_STATUS_T_OK. Variants carry their own names instead.
 rename_variants = "ScreamingSnakeCase"
 
 [parse]

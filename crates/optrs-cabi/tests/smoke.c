@@ -12,7 +12,7 @@
 #include "optrs.h"
 
 static void check(opt_status_t st, const char *what) {
-    if (st != OPT_STATUS_OK) {
+    if (st != OPT_STATUS_T_OK) {
         const char *msg = opt_last_error_message();
         fprintf(stderr, "%s failed (%d): %s\n", what, (int)st, msg ? msg : "(none)");
         assert(0);
@@ -29,8 +29,8 @@ int main(void) {
 
     opt_option_t opt;
     check(opt_option_init(&opt), "option_init");
-    opt.kind = OPT_KIND_CALL;
-    opt.style = OPT_STYLE_EUROPEAN;
+    opt.kind = OPT_KIND_T_CALL;
+    opt.style = OPT_STYLE_T_EUROPEAN;
     opt.spot = 100.0; opt.strike = 100.0;
     opt.rate = 0.05;  opt.div_yield = 0.02;
     opt.vol = 0.25;   opt.time = 1.0;
@@ -47,12 +47,12 @@ int main(void) {
     assert(fabs(cos_res.price - res.price) < 1e-9);
 
     /* Unsupported combination must fail cleanly, not crash. */
-    opt.style = OPT_STYLE_AMERICAN;
-    opt.kind = OPT_KIND_PUT;
+    opt.style = OPT_STYLE_T_AMERICAN;
+    opt.kind = OPT_KIND_T_PUT;
     int supported = 1;
     check(opt_engine_supports(0, &opt, &supported), "supports");
     assert(supported == 0);
-    assert(opt_price(p, 0, &opt, &res) == OPT_STATUS_UNSUPPORTED);
+    assert(opt_price(p, 0, &opt, &res) == OPT_STATUS_T_UNSUPPORTED);
     printf("expected error: %s\n", opt_last_error_message());
 
     /* American put via the lattice, with greeks. */
@@ -65,7 +65,7 @@ int main(void) {
 
     /* Bermudan with quarterly dates. */
     double dates[4] = {0.25, 0.50, 0.75, 1.00};
-    opt.style = OPT_STYLE_BERMUDAN;
+    opt.style = OPT_STYLE_T_BERMUDAN;
     opt.dates = dates;
     opt.n_dates = 4;
     opt_result_t berm;
@@ -74,7 +74,7 @@ int main(void) {
     assert(berm.price <= res.price + 1e-9);  /* bounded above by american */
 
     /* Null-pointer handling must be an error, not a segfault. */
-    assert(opt_price(p, 0, NULL, &res) == OPT_STATUS_NULL_POINTER);
+    assert(opt_price(p, 0, NULL, &res) == OPT_STATUS_T_NULL_POINTER);
 
     opt_pricer_free(p);
     opt_pricer_free(NULL);  /* must be safe */

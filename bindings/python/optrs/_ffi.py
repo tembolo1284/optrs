@@ -12,23 +12,23 @@ from cffi import FFI
 
 _CDEF = """
 typedef enum {
-    OPT_STATUS_OK = 0,
-    OPT_STATUS_DOMAIN = 1,
-    OPT_STATUS_NO_SOLUTION = 2,
-    OPT_STATUS_UNSUPPORTED = 3,
-    OPT_STATUS_NOT_CONVERGED = 4,
-    OPT_STATUS_NULL_POINTER = 5,
-    OPT_STATUS_BAD_SIZE = 6,
-    OPT_STATUS_BUFFER_TOO_SMALL = 7,
-    OPT_STATUS_PANIC = 8
+    OPT_STATUS_T_OK = 0,
+    OPT_STATUS_T_DOMAIN = 1,
+    OPT_STATUS_T_NO_SOLUTION = 2,
+    OPT_STATUS_T_UNSUPPORTED = 3,
+    OPT_STATUS_T_NOT_CONVERGED = 4,
+    OPT_STATUS_T_NULL_POINTER = 5,
+    OPT_STATUS_T_BAD_SIZE = 6,
+    OPT_STATUS_T_BUFFER_TOO_SMALL = 7,
+    OPT_STATUS_T_PANIC = 8
 } opt_status_t;
 
-typedef enum { OPT_KIND_CALL = 0, OPT_KIND_PUT = 1 } opt_kind_t;
+typedef enum { OPT_KIND_T_CALL = 0, OPT_KIND_T_PUT = 1 } opt_kind_t;
 
 typedef enum {
-    OPT_STYLE_EUROPEAN = 0,
-    OPT_STYLE_AMERICAN = 1,
-    OPT_STYLE_BERMUDAN = 2
+    OPT_STYLE_T_EUROPEAN = 0,
+    OPT_STYLE_T_AMERICAN = 1,
+    OPT_STYLE_T_BERMUDAN = 2
 } opt_style_t;
 
 typedef struct {
