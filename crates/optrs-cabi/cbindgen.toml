@@ -23,8 +23,11 @@ include = ["OptStatus", "OptKind", "OptStyle", "OptOption", "OptResult"]
 "Pricer" = "opt_pricer_t"
 
 [enum]
-# Deliberately NOT prefix_with_name: that derives the prefix from the renamed
-# type, giving OPT_STATUS_T_OK. Variants carry their own names instead.
+# Prefix derives from the renamed type, so variants come out as
+# OPT_STATUS_T_OK rather than OPT_STATUS_OK. Slightly redundant, but the
+# alternative — dropping the prefix — emits bare OK, DOMAIN, PANIC and
+# NULL_POINTER into the global C namespace, and DOMAIN collides with math.h.
+prefix_with_name = true
 rename_variants = "ScreamingSnakeCase"
 
 [parse]
