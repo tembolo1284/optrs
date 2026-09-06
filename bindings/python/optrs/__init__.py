@@ -68,7 +68,7 @@ class OptrsError(RuntimeError):
 
 
 def _check(status: int) -> None:
-    if status == lib.OPT_STATUS_OK:
+    if status == lib.OPT_STATUS_T_OK:
         return
     raw = lib.opt_last_error_message()
     message = ffi.string(raw).decode() if raw != ffi.NULL else ""
